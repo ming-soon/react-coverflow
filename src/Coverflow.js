@@ -341,7 +341,8 @@ class Coverflow extends Component {
   };
 
   _handleWheel(e) {
-    const delta = Math.abs(e.deltaY) === 125 ? e.deltaY * -120 : e.deltaY < 0 ? -600000 : 600000;
+    const wheelDelta = e.deltaY || e.deltaX
+    const delta = Math.abs(wheelDelta) === 125 ? wheelDelta * -120 : wheelDelta < 0 ? -600000 : 600000;
     const count = Math.ceil(Math.abs(delta) / 120);
 
     if (count > 0) {
