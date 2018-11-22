@@ -76,6 +76,7 @@ class Coverflow extends Component {
   constructor(props) {
     super(props);
 
+    this._handleWheel = this._handleWheel.bind(this)
     this.debouncedHandlePrevFigure = debounce(this._handlePrevFigure, 30);
     this.debouncedHandleNextFigure = debounce(this._handleNextFigure, 30);
   }
@@ -95,6 +96,14 @@ class Coverflow extends Component {
 
     if (eventListener) {
       window.addEventListener('resize', this.updateDimensions.bind(this));
+
+      const { enableScroll } = this.props
+      if (enableScroll) {
+        this.element.addEventListener('mousewheel', this._handleWheel, {
+          capture: true,
+          passive: false,
+        })
+      }
     }
   }
 
@@ -114,11 +123,18 @@ class Coverflow extends Component {
       }
     });
 
-    // const removeListener = window && window.removeEventListener;
+    const removeListener = window && window.removeEventListener;
 
-    // if(removeListener) {
+    if(removeListener) {
     //   window.removeEventListener('resize', this.updateDimensions.bind(this));
-    // }
+      const { enableScroll } = this.props
+      if (enableScroll) {
+        this.element.removeEventListener('mousewheel', this._handleWheel, {
+          capture: true,
+          passive: false,
+        })
+      }
+    }
   }
 
   updateDimensions(active) {
@@ -145,18 +161,18 @@ class Coverflow extends Component {
   }
 
   render() {
-    const { enableScroll, navigation, infiniteScroll, media } = this.props;
+    const { navigation, infiniteScroll, media } = this.props;
     const { width, height, current } = this.state;
     const renderPrevBtn = infiniteScroll ? true : current > 0;
     const renderNextBtn = infiniteScroll ? true : current < this.props.children.length - 1;
     return (
       <StyleRoot>
         <div
+          ref={(element) => { this.element = element }}
           className={styles.container}
           style={
             Object.keys(media).length !== 0 ? media : { width: `${width}px`, height: `${height}px` }
           }
-          onWheel={enableScroll ? this._handleWheel.bind(this) : null}
           onTouchStart={this._handleTouchStart.bind(this)}
           onTouchMove={this._handleTouchMove.bind(this)}
           onKeyDown={this._keyDown.bind(this)}
@@ -349,6 +365,9 @@ class Coverflow extends Component {
   };
 
   _handleWheel(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
     const wheelDelta = e.deltaY || e.deltaX
     const delta = Math.abs(wheelDelta) === 125 ? wheelDelta * -120 : wheelDelta < 0 ? -600000 : 600000;
     const count = Math.ceil(Math.abs(delta) / 120);
@@ -358,14 +377,12 @@ class Coverflow extends Component {
       let func = null;
 
       if (sign > 0 && this._hasPrevFigure()) {
-        e.preventDefault();
         if (Math.abs(wheelDelta) >= 100) {
           func = this._handlePrevFigure();
         } else {
           this.debouncedHandlePrevFigure();
         }
       } else if (sign < 0 && this._hasNextFigure()) {
-        e.preventDefault();
         if (Math.abs(wheelDelta) >= 100) {
           func = this._handleNextFigure();
         } else {
