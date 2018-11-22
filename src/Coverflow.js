@@ -77,8 +77,8 @@ class Coverflow extends Component {
     super(props);
 
     this._handleWheel = this._handleWheel.bind(this)
-    this.debouncedHandlePrevFigure = debounce(this._handlePrevFigure, 30);
-    this.debouncedHandleNextFigure = debounce(this._handleNextFigure, 30);
+    this.debouncedHandlePrevFigure = debounce(this._handlePrevFigure, 20);
+    this.debouncedHandleNextFigure = debounce(this._handleNextFigure, 20);
   }
 
   componentDidMount() {
