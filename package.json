@@ -38,6 +38,7 @@
   "license": "MIT",
   "dependencies": {
     "babel-runtime": "^6.26.0",
+    "lodash.debounce": "^4.0.8",
     "radium": "^0.25.0"
   },
   "peerDependencies": {

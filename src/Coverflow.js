@@ -8,6 +8,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import Radium, { StyleRoot } from 'radium';
+import debounce from 'lodash.debounce';
 // import { hot } from "react-hot-loader";
 import styles from './stylesheets/coverflow.scss';
 
@@ -71,6 +72,13 @@ class Coverflow extends Component {
     width: this.props.width,
     height: this.props.height,
   };
+
+  constructor(props) {
+    super(props);
+
+    this.debouncedHandlePrevFigure = debounce(this._handlePrevFigure, 30);
+    this.debouncedHandleNextFigure = debounce(this._handleNextFigure, 30);
+  }
 
   componentDidMount() {
     this.updateDimensions();
@@ -351,10 +359,18 @@ class Coverflow extends Component {
 
       if (sign > 0 && this._hasPrevFigure()) {
         e.preventDefault();
-        func = this._handlePrevFigure();
+        if (Math.abs(wheelDelta) >= 100) {
+          func = this._handlePrevFigure();
+        } else {
+          this.debouncedHandlePrevFigure();
+        }
       } else if (sign < 0 && this._hasNextFigure()) {
         e.preventDefault();
-        func = this._handleNextFigure();
+        if (Math.abs(wheelDelta) >= 100) {
+          func = this._handleNextFigure();
+        } else {
+          this.debouncedHandleNextFigure();
+        }
       }
 
       if (typeof func === 'function') {
