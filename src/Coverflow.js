@@ -51,6 +51,7 @@ class Coverflow extends Component {
     infiniteScroll: PropTypes.bool,
     width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    minSwipe: PropTypes.number,
   };
 
   static defaultProps = {
@@ -65,6 +66,7 @@ class Coverflow extends Component {
     infiniteScroll: false,
     width: 'auto',
     height: 'auto',
+    minSwipe: 50,
   };
 
   state = {
@@ -367,6 +369,8 @@ class Coverflow extends Component {
     e.preventDefault();
     e.stopPropagation();
 
+    const { minSwipe } = this.props
+
     const wheelDelta = e.deltaY || e.deltaX
     const absWheelDelta = Math.abs(wheelDelta)
 
@@ -378,7 +382,7 @@ class Coverflow extends Component {
       TOUCH.swipeDistance = absWheelDelta
     }
 
-    if (TOUCH.swipeDistance < 50) {
+    if (TOUCH.swipeDistance < minSwipe) {
       return
     }
 
