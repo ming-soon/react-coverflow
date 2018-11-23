@@ -8,7 +8,6 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import Radium, { StyleRoot } from 'radium';
-import debounce from 'lodash.debounce';
 // import { hot } from "react-hot-loader";
 import styles from './stylesheets/coverflow.scss';
 
@@ -17,6 +16,8 @@ const TOUCH = {
   lastX: 0,
   sign: 0,
   lastMove: 0,
+  lastSwipeDir: 1,
+  swipeDistance: 0,
 };
 
 const TRANSITIONS = [
@@ -77,14 +78,6 @@ class Coverflow extends Component {
     super(props);
 
     this._handleWheel = this._handleWheel.bind(this)
-    this.debouncedHandlePrevFigure = debounce(this._handlePrevFigure, 20, {
-      leading: true,
-      trailing: false,
-    });
-    this.debouncedHandleNextFigure = debounce(this._handleNextFigure, 20, {
-      leading: true,
-      trailing: false,
-    });
   }
 
   componentDidMount() {
@@ -375,7 +368,23 @@ class Coverflow extends Component {
     e.stopPropagation();
 
     const wheelDelta = e.deltaY || e.deltaX
-    const delta = Math.abs(wheelDelta) === 125 ? wheelDelta * -120 : wheelDelta < 0 ? -600000 : 600000;
+    const absWheelDelta = Math.abs(wheelDelta)
+
+    if ((wheelDelta >= 0 && TOUCH.lastSwipeDir === 1)
+      || (wheelDelta < 0 && TOUCH.lastSwipeDir === -1)) {
+      TOUCH.swipeDistance += absWheelDelta
+    } else {
+      TOUCH.lastSwipeDir = wheelDelta >= 0 ? 1 : -1
+      TOUCH.swipeDistance = absWheelDelta
+    }
+
+    if (TOUCH.swipeDistance < 50) {
+      return
+    }
+
+    TOUCH.swipeDistance = 0
+
+    const delta = absWheelDelta === 125 ? wheelDelta * -120 : wheelDelta < 0 ? -600000 : 600000;
     const count = Math.ceil(Math.abs(delta) / 120);
 
     if (count > 0) {
@@ -383,17 +392,9 @@ class Coverflow extends Component {
       let func = null;
 
       if (sign > 0 && this._hasPrevFigure()) {
-        if (Math.abs(wheelDelta) >= 100) {
-          func = this._handlePrevFigure();
-        } else {
-          this.debouncedHandlePrevFigure();
-        }
+        func = this._handlePrevFigure();
       } else if (sign < 0 && this._hasNextFigure()) {
-        if (Math.abs(wheelDelta) >= 100) {
-          func = this._handleNextFigure();
-        } else {
-          this.debouncedHandleNextFigure();
-        }
+        func = this._handleNextFigure();
       }
 
       if (typeof func === 'function') {
